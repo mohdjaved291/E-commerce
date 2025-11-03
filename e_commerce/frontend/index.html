@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Store</title>
+
+    <!-- Stylesheets in dependency order -->
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/cart-styles.css">
+    <link rel="stylesheet" href="./css/product-detail-styles.css">
+    <link rel="stylesheet" href="./css/auth-styles.css">
+</head>
+
+<body>
+    <!-- ===== MAIN LAYOUT CONTAINER ===== -->
+    <div class="container">
+
+        <!-- ===== SITE HEADER WITH NAVIGATION ===== -->
+        <header>
+            <h1>🛒 E-commerce Store</h1>
+
+            <!-- Header Actions: Search, Filters, Auth, Cart -->
+            <div class="header-actions">
+                <!-- Search and Filter Controls -->
+                <input type="text" id="searchInput" placeholder="Search products..." class="search-input"
+                    aria-label="Search products">
+
+                <select id="categoryFilter" class="category-filter" aria-label="Filter by category">
+                    <option value="">All Categories</option>
+                </select>
+
+                <button id="searchBtn" class="search-btn" aria-label="Execute search">
+                    Search
+                </button>
+
+                <!-- User Authentication Section -->
+                <div class="auth-section" id="authSection">
+                    <!-- Guest User State -->
+                    <div class="auth-buttons" id="authButtons">
+                        <button id="loginBtn" class="auth-btn login-btn" aria-label="Open login modal">
+                            Login
+                        </button>
+                        <button id="registerBtn" class="auth-btn register-btn" aria-label="Open registration modal">
+                            Register
+                        </button>
+                    </div>
+
+                    <!-- Authenticated User State -->
+                    <div class="user-menu" id="userMenu" style="display: none;">
+                        <div class="user-avatar" id="userAvatar" tabindex="0" aria-label="User menu">
+                            <span id="userInitials">U</span>
+                        </div>
+
+                        <!-- User Dropdown Menu -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-info">
+                                <span class="user-name" id="userName">User Name</span>
+                                <span class="user-email" id="userEmail">user@email.com</span>
+                            </div>
+                            <div class="dropdown-menu">
+                                <a href="#" id="profileLink" class="dropdown-item">👤 Profile</a>
+                                <a href="#" id="ordersLink" class="dropdown-item">📦 Orders</a>
+                                <a href="#" id="addressesLink" class="dropdown-item">📍 Addresses</a>
+                                <hr class="dropdown-divider">
+                                <a href="#" id="logoutBtn" class="dropdown-item logout">🚪 Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shopping Cart Icon -->
+                <div class="cart-icon" id="cartIcon" tabindex="0" aria-label="Open shopping cart">
+                    🛒
+                    <span class="cart-badge" id="cartBadge" aria-label="Items in cart">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== BREADCRUMB NAVIGATION ===== -->
+        <nav class="breadcrumb" id="breadcrumb" style="display: none;" aria-label="Breadcrumb navigation">
+            <a href="#" onclick="showHomePage()" class="breadcrumb-link">Home</a>
+            <span class="breadcrumb-separator" aria-hidden="true">›</span>
+            <span class="breadcrumb-current" id="breadcrumbText"></span>
+        </nav>
+
+        <!-- ===== MAIN PRODUCT CATALOG SECTION ===== -->
+        <main class="products-section">
+            <!-- Section Header with Sorting -->
+            <div class="section-header">
+                <h2 id="sectionTitle">Products</h2>
+                <div class="sort-options">
+                    <select id="sortBy" class="sort-select" aria-label="Sort products by">
+                        <option value="-created_at">Newest First</option>
+                        <option value="price">Price: Low to High</option>
+                        <option value="-price">Price: High to Low</option>
+                        <option value="name">Name: A to Z</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Dynamic Product Grid Container -->
+            <div id="productsContainer" class="products-grid" role="region" aria-label="Product catalog"
+                aria-live="polite">
+                <div class="loading">Loading products...</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== AUTHENTICATION MODALS ===== -->
+
+    <!-- Login Modal -->
+    <div class="auth-overlay" id="loginOverlay" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <div class="auth-modal" id="loginModal">
+            <div class="auth-header">
+                <h2 id="loginTitle">Login to Your Account</h2>
+                <button class="close-auth" id="closeLogin" aria-label="Close login modal">×</button>
+            </div>
+
+            <form class="auth-form" id="loginForm" novalidate>
+                <div class="form-group">
+                    <label for="loginEmail">Email Address</label>
+                    <input type="email" id="loginEmail" name="email" required autocomplete="email"
+                        aria-describedby="loginEmailError">
+                    <span class="error-message" id="loginEmailError" role="alert"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" required autocomplete="current-password"
+                        aria-describedby="loginPasswordError">
+                    <span class="error-message" id="loginPasswordError" role="alert"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMe" name="remember">
+                        <span class="checkmark"></span>
+                        Remember me
+                    </label>
+                </div>
+
+                <button type="submit" class="auth-submit-btn" id="loginSubmitBtn">
+                    <span class="btn-text">Login</span>
+                    <span class="btn-loading" style="display: none;">Logging in...</span>
+                </button>
+
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="#" id="switchToRegister">Register here</a></p>
+                    <p><a href="#" id="forgotPassword">Forgot your password?</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div class="auth-overlay" id="registerOverlay" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+        <div class="auth-modal" id="registerModal">
+            <div class="auth-header">
+                <h2 id="registerTitle">Create Your Account</h2>
+                <button class="close-auth" id="closeRegister" aria-label="Close registration modal">×</button>
+            </div>
+
+            <form class="auth-form" id="registerForm" novalidate>
+                <!-- Name Fields Row -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="registerFirstName">First Name</label>
+                        <input type="text" id="registerFirstName" name="first_name" required autocomplete="given-name"
+                            aria-describedby="registerFirstNameError">
+                        <span class="error-message" id="registerFirstNameError" role="alert"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerLastName">Last Name</label>
+                        <input type="text" id="registerLastName" name="last_name" required autocomplete="family-name"
+                            aria-describedby="registerLastNameError">
+                        <span class="error-message" id="registerLastNameError" role="alert"></span>
+                    </div>
+                </div>
+
+                <!-- Username Field -->
+                <div class="form-group">
+                    <label for="registerUsername">Username</label>
+                    <input type="text" id="registerUsername" name="username" required autocomplete="username"
+                        aria-describedby="registerUsernameError registerUsernameSuccess">
+                    <span class="error-message" id="registerUsernameError" role="alert"></span>
+                    <span class="success-message" id="registerUsernameSuccess" role="status"></span>
+                </div>
+
+                <!-- Email Field -->
+                <div class="form-group">
+                    <label for="registerEmail">Email Address</label>
+                    <input type="email" id="registerEmail" name="email" required autocomplete="email"
+                        aria-describedby="registerEmailError registerEmailSuccess">
+                    <span class="error-message" id="registerEmailError" role="alert"></span>
+                    <span class="success-message" id="registerEmailSuccess" role="status"></span>
+                </div>
+
+                <!-- Phone Field -->
+                <div class="form-group">
+                    <label for="registerPhone">Phone Number (Optional)</label>
+                    <input type="tel" id="registerPhone" name="phone_number" autocomplete="tel"
+                        aria-describedby="registerPhoneError">
+                    <span class="error-message" id="registerPhoneError" role="alert"></span>
+                </div>
+
+                <!-- Password Fields Row -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" name="password" required
+                            autocomplete="new-password" aria-describedby="registerPasswordError">
+                        <span class="error-message" id="registerPasswordError" role="alert"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPasswordConfirm">Confirm Password</label>
+                        <input type="password" id="registerPasswordConfirm" name="password_confirm" required
+                            autocomplete="new-password" aria-describedby="registerPasswordConfirmError">
+                        <span class="error-message" id="registerPasswordConfirmError" role="alert"></span>
+                    </div>
+                </div>
+
+                <!-- Terms Checkbox -->
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="agreeTerms" name="agree_terms" required
+                            aria-describedby="termsDescription">
+                        <span class="checkmark"></span>
+                        <span id="termsDescription">
+                            I agree to the <a href="#" target="_blank">Terms of Service</a>
+                            and <a href="#" target="_blank">Privacy Policy</a>
+                        </span>
+                    </label>
+                </div>
+
+                <button type="submit" class="auth-submit-btn" id="registerSubmitBtn">
+                    <span class="btn-text">Create Account</span>
+                    <span class="btn-loading" style="display: none;">Creating Account...</span>
+                </button>
+
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="#" id="switchToLogin">Login here</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== USER PROFILE MODAL ===== -->
+    <div class="auth-overlay" id="profileOverlay" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+        <div class="profile-modal" id="profileModal">
+            <div class="profile-header">
+                <h2 id="profileTitle">User Profile</h2>
+                <button class="close-auth" id="closeProfile" aria-label="Close profile modal">×</button>
+            </div>
+
+            <div class="profile-content">
+                <!-- Profile Tab Navigation -->
+                <div class="profile-tabs" role="tablist">
+                    <button class="tab-btn active" data-tab="profile" role="tab" aria-selected="true"
+                        aria-controls="profileTab">
+                        Profile
+                    </button>
+                    <button class="tab-btn" data-tab="addresses" role="tab" aria-selected="false"
+                        aria-controls="addressesTab">
+                        Addresses
+                    </button>
+                    <button class="tab-btn" data-tab="security" role="tab" aria-selected="false"
+                        aria-controls="securityTab">
+                        Security
+                    </button>
+                </div>
+
+                <!-- Profile Information Tab -->
+                <div class="tab-content active" id="profileTab" role="tabpanel" aria-labelledby="profile-tab">
+                    <form class="profile-form" id="profileForm">
+                        <!-- Avatar Section -->
+                        <div class="profile-avatar-section">
+                            <div class="profile-avatar-large" id="profileAvatarLarge">
+                                <span id="profileInitials">U</span>
+                            </div>
+                            <button type="button" class="change-avatar-btn" aria-label="Change profile avatar">
+                                Change Avatar
+                            </button>
+                        </div>
+
+                        <!-- Profile Form Fields -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profileFirstName">First Name</label>
+                                <input type="text" id="profileFirstName" name="first_name" required
+                                    autocomplete="given-name">
+                            </div>
+                            <div class="form-group">
+                                <label for="profileLastName">Last Name</label>
+                                <input type="text" id="profileLastName" name="last_name" required
+                                    autocomplete="family-name">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profileEmail">Email Address</label>
+                            <input type="email" id="profileEmail" name="email" readonly autocomplete="email">
+                            <small class="form-help">Email cannot be changed</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profilePhone">Phone Number</label>
+                                <input type="tel" id="profilePhone" name="phone_number" autocomplete="tel">
+                            </div>
+                            <div class="form-group">
+                                <label for="profileBirthDate">Date of Birth</label>
+                                <input type="date" id="profileBirthDate" name="date_of_birth" autocomplete="bday">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="profileBio">Bio</label>
+                            <textarea id="profileBio" name="bio" rows="3"
+                                placeholder="Tell us about yourself..."></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profileLocation">Location</label>
+                                <input type="text" id="profileLocation" name="location" placeholder="City, Country">
+                            </div>
+                            <div class="form-group">
+                                <label for="profileWebsite">Website</label>
+                                <input type="url" id="profileWebsite" name="website" placeholder="https://...">
+                            </div>
+                        </div>
+
+                        <!-- Notification Preferences -->
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="emailNotifications" name="email_notifications">
+                                <span class="checkmark"></span>
+                                Receive email notifications
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="marketingEmails" name="marketing_emails">
+                                <span class="checkmark"></span>
+                                Receive marketing emails
+                            </label>
+                        </div>
+
+                        <button type="submit" class="profile-save-btn">Save Changes</button>
+                    </form>
+                </div>
+
+                <!-- Addresses Tab -->
+                <div class="tab-content" id="addressesTab" role="tabpanel" aria-labelledby="addresses-tab">
+                    <div class="addresses-header">
+                        <h3>Your Addresses</h3>
+                        <button class="add-address-btn" id="addAddressBtn" aria-label="Add new address">
+                            Add New Address
+                        </button>
+                    </div>
+                    <div class="addresses-list" id="addressesList" role="region" aria-label="Saved addresses">
+                        <!-- Addresses will be loaded here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Security Tab -->
+                <div class="tab-content" id="securityTab" role="tabpanel" aria-labelledby="security-tab">
+                    <form class="security-form" id="securityForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="password" id="currentPassword" name="old_password" required
+                                autocomplete="current-password">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" name="new_password" required
+                                autocomplete="new-password">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmNewPassword">Confirm New Password</label>
+                            <input type="password" id="confirmNewPassword" name="new_password_confirm" required
+                                autocomplete="new-password">
+                        </div>
+
+                        <button type="submit" class="security-save-btn">Change Password</button>
+                    </form>
+
+                    <!-- Account Deactivation -->
+                    <div class="danger-zone">
+                        <h3>Danger Zone</h3>
+                        <p>Once you deactivate your account, there is no going back. Please be certain.</p>
+                        <button class="deactivate-btn" id="deactivateAccountBtn"
+                            aria-label="Deactivate account permanently">
+                            Deactivate Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PRODUCT DETAIL MODAL ===== -->
+    <div class="product-detail-overlay" id="productDetailOverlay" role="dialog" aria-modal="true"
+        aria-labelledby="productDetailName">
+        <div class="product-detail-modal" id="productDetailModal">
+            <div class="product-detail-header">
+                <button class="close-detail" id="closeProductDetail" aria-label="Close product details">×</button>
+            </div>
+
+            <!-- Product Detail Content -->
+            <div class="product-detail-content">
+                <!-- Product Image -->
+                <div class="product-detail-image">
+                    <img id="productDetailImage" src="" alt="" style="display: none;">
+                    <div id="productDetailImagePlaceholder" class="image-placeholder" aria-hidden="true">📦</div>
+                </div>
+
+                <!-- Product Information -->
+                <div class="product-detail-info">
+                    <div class="product-detail-breadcrumb" id="productDetailCategory" aria-label="Product category">
+                    </div>
+
+                    <h1 id="productDetailName">Product Name</h1>
+                    <div class="product-detail-price" id="productDetailPrice" aria-label="Product price"></div>
+
+                    <div class="product-detail-stock">
+                        <span id="productDetailStockStatus" class="stock-status" role="status"></span>
+                    </div>
+
+                    <div class="product-detail-description">
+                        <h3>Description</h3>
+                        <p id="productDetailDescription"></p>
+                    </div>
+
+                    <!-- Purchase Actions -->
+                    <div class="product-detail-actions">
+                        <div class="quantity-selector">
+                            <label for="productQuantity">Quantity:</label>
+                            <div class="quantity-controls">
+                                <button type="button" id="decreaseQty" class="qty-btn"
+                                    aria-label="Decrease quantity">-</button>
+                                <input type="number" id="productQuantity" value="1" min="1" max="99" class="qty-input"
+                                    aria-label="Product quantity">
+                                <button type="button" id="increaseQty" class="qty-btn"
+                                    aria-label="Increase quantity">+</button>
+                            </div>
+                        </div>
+
+                        <button id="addToCartDetailBtn" class="add-to-cart-btn-detail">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Products Section -->
+            <div class="related-products-section" id="relatedProductsSection" role="region"
+                aria-label="Related products">
+                <h3>You might also like</h3>
+                <div class="related-products-grid" id="relatedProductsGrid">
+                    <!-- Related products will be inserted here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SHOPPING CART SIDEBAR ===== -->
+    <!-- Cart Overlay for Mobile -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+        <!-- Cart Header -->
+        <div class="cart-header-sidebar">
+            <h2 class="cart-title" id="cartTitle">Shopping Cart</h2>
+            <button class="close-cart" id="closeCart" aria-label="Close shopping cart">×</button>
+        </div>
+
+        <!-- Cart Items List -->
+        <div class="cart-items" id="cartItems" role="region" aria-label="Cart items" aria-live="polite">
+            <!-- Cart items will be rendered here dynamically -->
+        </div>
+
+        <!-- Cart Footer with Total and Checkout -->
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotal" aria-label="Cart total amount">$0.00</span>
+            </div>
+            <button class="checkout-btn" id="checkoutBtn" aria-label="Proceed to checkout">
+                Proceed to Checkout
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== TOAST NOTIFICATION ===== -->
+    <div class="toast" id="toast" role="alert" aria-live="assertive">
+        <!-- Toast messages appear here -->
+    </div>
+
+    <!-- ===== JAVASCRIPT MODULES ===== -->
+    <!-- Load scripts in dependency order -->
+    <script src="./js/script.js"></script>
+    <script src="./js/cart.js"></script>
+    <script src="./js/product-detail.js"></script>
+    <script src="./js/auth.js"></script>
+</body>
+
+</html>
